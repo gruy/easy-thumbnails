@@ -343,6 +343,16 @@ class Thumbnailer(File):
         options['ALIAS'] = alias
         return self.get_thumbnail(options, silent_template_exception=True)
 
+    def _need_thumbnail_convert(self, filename, thumbnail_options):
+        """
+        Convert thumbnails to the format specified in the options
+        """
+        convert_to = thumbnail_options.get('convert_thumbnail_to', None)
+        if convert_to and convert_to != 'default':
+            splitted = os.path.splitext(filename)
+            filename = f'{splitted[0]}.{convert_to}'
+        return filename
+
     def get_options(self, thumbnail_options, **kwargs):
         """
         Get the thumbnail options that includes the default options for this
@@ -391,6 +401,7 @@ class Thumbnailer(File):
         filename = self.get_thumbnail_name(
             thumbnail_options,
             transparent=utils.is_transparent(thumbnail_image))
+        filename = self._need_thumbnail_convert(filename, thumbnail_options)
         quality = thumbnail_options['quality']
         subsampling = thumbnail_options['subsampling']
 
@@ -468,6 +479,7 @@ class Thumbnailer(File):
             names.append(transparent_name)
 
         for filename in names:
+            filename = self._need_thumbnail_convert(filename, thumbnail_options)
             exists = self.thumbnail_exists(filename)
             if exists:
                 thumbnail_file = ThumbnailFile(
